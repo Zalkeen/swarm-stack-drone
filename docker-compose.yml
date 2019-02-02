@@ -1,0 +1,32 @@
+version: '3'
+services:
+  daemon:
+    image: drone/drone:1.0.0-rc.5-linux-arm
+    #volumes:
+    #  - ${DRONE_VOLUME_DATA:-./volumes/data}:/data
+    environment:
+      - DRONE_GIT_ALWAYS_AUTH=false
+      - DRONE_RPC_SECRET=${DRONE_RPC_SECRET:-secretchangeme}
+      - DRONE_SERVER_HOST=${DRONE_SERVER_HOST:-pipeline.domain.net}
+      - DRONE_SERVER_PROTO=http
+      - DRONE_TLS_AUTOCERT=false
+      - DATABASE_DRIVER=postgres
+      - DATABASE_CONFIG=postgres://${DRONE_CONF_DB_USER:-pipeline}:${DRONE_CONF_DB_PW:-changeme}@${DRONE_CONF_DB:-postgres}:5432/${DRONE_CONF_DB:-pipeline}
+      - DRONE_GITEA_SERVER=${DRONE_GITEA_SERVER:-http://gitea}
+    networks:
+      - web
+      - databases
+      - default
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=web"
+        - "traefik.port=80"
+        - "traefik.frontend.rule=Host:${DRONE_SERVER_HOST:-pipeline.domain.net}"
+        - "traefik.frontend.port=80"
+networks:
+  web:
+    external: true
+  databases:
+    external: true
+
